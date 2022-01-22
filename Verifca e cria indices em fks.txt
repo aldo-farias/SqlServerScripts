@@ -1,0 +1,42 @@
+declare @index varchar(128), @tabela varchar(128) ,@coluna varchar(128), @script varchar (max)
+
+declare cur cursor local fast_forward for 
+
+WITH FKsNI (ObjectId, FKId) As (
+SELECT DISTINCT
+    parent_object_id, constraint_object_id
+FROM sys.foreign_key_columns As FC
+WHERE NOT EXISTS (
+    SELECT * FROM sys.index_columns As IC
+    WHERE
+        FC.parent_object_id = IC.object_id AND
+        FC.constraint_column_id = IC.index_column_id AND
+        FC.parent_column_id = IC.column_id))
+
+SELECT
+	OBJECT_NAME(FKsNI.FKId),
+    OBJECT_NAME(FKsNI.ObjectId),
+    C.Name
+   FROM FKsNI
+INNER JOIN sys.foreign_key_columns As FC ON
+    FKsNI.FKId = FC.constraint_object_id AND
+    FKsNI.ObjectId = FC.parent_object_id
+INNER JOIN sys.columns As C ON
+    FC.parent_object_id = C.object_id AND
+    FC.parent_column_id = C.column_id
+
+open cur 
+fetch next from cur into @index, @tabela,@coluna
+while @@FETCH_STATUS =0
+
+begin
+
+set @script ='create nonclustered index '+ @index +' on ['+@tabela+'] ('+@coluna+')'
+exec (@script)
+
+fetch next from cur into @index, @tabela,@coluna
+
+end
+close cur
+deallocate cur
+

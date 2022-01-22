@@ -1,0 +1,21 @@
+--transforma colunas em linhas e verifica qtde de skus de determinado romaneio
+
+declare @qtde_skus varchar(12)
+
+select pedido, produto , tamanho , qtde into #tmp
+from (
+			select pedido, produto, e1 ,e2,e3,e4,e5,e6,e7,e8  from vendas_prod_embalado where romaneio ='6035    '
+			and nome_clifor ='QUIKSILVER BARRA SUL'
+	) a
+	unpivot
+	(
+	   qtde for tamanho in ( e1 ,e2,e3,e4,e5,e6,e7,e8)
+	) as b
+
+	
+	where qtde>0
+     set @qtde_skus = (select (count(0))  from #tmp)
+	
+	print 'qtde_skus para romaneio = '+  @qtde_skus 
+	drop table #tmp
+

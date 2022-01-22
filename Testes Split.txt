@@ -1,0 +1,30 @@
+	  -- Verifica quais tags estão agrupadas para fazer o SPLIT
+	--  if  (object_id('tmpsplit')  is not null)
+	--			begin
+	--			drop table tmpsplit 
+	--			end
+	--  create table tmpsplit (idnode uniqueidentifier,name_menu varchar(128), tag varchar(max))
+	
+
+	--  declare @idnode uniqueidentifier, @tagsplit varchar(max),@nametag varchar(128)
+	--  begin
+	--  declare cur cursor local fast_forward for
+	--   select id,name, tag  From node where tag like '%|%'
+	    
+	--   open cur
+ --           fetch next from cur into @idnode,@nametag,@tagsplit
+
+	--    while @@fetch_status = 0
+	--			begin
+	--			   insert into  tmpsplit
+	--			   SELECT @idnode,@nametag,* FROM dbo.fnSplit(@tagsplit, '|')
+	--			   fetch next from cur into @idnode,@nametag,@tagsplit
+	--			 end
+	--	   close cur
+ --         deallocate cur
+	--end
+
+	----Inseri tags agrupadas que devem ser ativadas  	
+	--    insert into tmptags_para_ativar
+	--	select a.idnode ,name_menu,tag , (select getdate()) from tmpsplit a where exists(
+	--	SELECT * FROM tmptagsativas b where (a.tag = b.grupo or a.tag = b.cartela or a.tag = b.tipo_produto)   )

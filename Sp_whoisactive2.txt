@@ -1,0 +1,38 @@
+USE [master]
+GO
+CREATE procedure [dbo].[sp_Whoisactive2] 
+as
+set transaction isolation level read uncommitted;
+SELECT
+  ses.session_id,
+  blocking_session_id,
+  r.reads,
+    r.writes,
+    r.logical_reads,
+    r.cpu_time,
+  qp.query_plan,
+  db_name(r.database_id) as dbName,
+  ISNULL(ses.host_name, '') as HostName,
+  program_name,
+  ISNULL(ses.login_name, '')  as LoginName,
+  command as Command,
+  r.status,
+    s.text as Text,
+    start_time as StartTime,
+    percent_complete as PercentComplote, 
+    DATEDIFF(MINUTE,ISNULL(r.start_time,GETDATE()),GETDATE())  as RunningMinutes,
+    CAST(((DATEDIFF(s,start_time,GetDate()))/3600) as varchar) + ' hour(s), '
+    + CAST((DATEDIFF(s,start_time,GetDate())%3600)/60 as varchar) + 'min, '
+    + CAST((DATEDIFF(s,start_time,GetDate())%60) as varchar) + ' sec' as RunningTime,
+    CAST((estimated_completion_time/3600000) as varchar) + ' hour(s), '
+    + CAST((estimated_completion_time %3600000)/60000 as varchar) + 'min, '
+    + CAST((estimated_completion_time %60000)/1000 as varchar) + ' sec' as EstTimeToGo,
+    dateadd(second,estimated_completion_time/1000, getdate()) as EstCompletionTime,
+  S.objectid,
+  last_wait_type
+FROM sys.dm_exec_requests r
+CROSS APPLY sys.dm_exec_sql_text(r.sql_handle) s
+OUTER APPLY sys.dm_exec_query_plan(r.plan_handle) as qp
+left JOIN sys.dm_exec_sessions as ses on r.session_id = ses.session_id
+order by ses.session_id asc, blocking_session_id asc
+GO

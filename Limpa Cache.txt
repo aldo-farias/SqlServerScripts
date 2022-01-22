@@ -1,0 +1,10 @@
+CHECKPOINT 
+GO
+DBCC DROPCLEANBUFFERS;
+GO
+dbcc freeproccache
+
+
+
+
+ SELECT * FROM SYS.SYSCACHEOBJECTS where dbid = db_id([NomeSeuDB])

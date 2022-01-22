@@ -1,0 +1,15 @@
+declare @script varchar(max), @database varchar(128)
+
+declare cur cursor local fast_forward for 
+	select name from master..sysdatabases 
+		where name not in ('master', 'tempdb', 'model', 'msdb') and name not like '%tmp'
+open cur
+fetch next from cur into @database
+while @@fetch_status = 0
+begin
+	set @script = 'DBCC SHRINKDATABASE([' + @database + '])'
+	execute (@script)
+	fetch next from cur into @database
+end
+close cur
+deallocate cur

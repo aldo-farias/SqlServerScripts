@@ -1,0 +1,37 @@
+Antes de criar a proc se deve habilitar o Database Mail pelo Object Explorer.
+
+Segue link para a configuração: http://www.devmedia.com.br/database-mail-no-sql-server/24283
+
+create procedure Verifica_Erro_Banco_Dados
+
+AS
+
+declare @subject varchar(500)
+
+	if exists (select top 1 database_id from msdb..Suspect_pages where last_update_date >= dateadd(mi,-3,getdate()))
+	
+	begin
+		set @subject = 'Existe um página corrompida no Banco de Dados.'
+
+		EXEC msdb.dbo.sp_send_dbmail
+		@profile_name = 'ModenaEmail',
+		@recipients = 'andre.modena@b2usistemas.com.br',
+		@query = 'select *
+		from msdb..Suspect_pages',
+		@Subject = @subject;
+	end
+
+	if  exists (select top 1 database_id from sys.databases where state_desc not in ('ONLINE','RESTORING'))
+		
+	begin
+		set @subject = 'Existe uma database que não está ONLINE no SQL Server. '
+
+		EXEC msdb.dbo.sp_send_dbmail
+		@profile_name = 'ModenaEmail',
+		@recipients = 'andre.modena@b2usistemas.com.br',
+		@query = 'select name, state_desc
+		from sys.databases
+		where state_desc NOT IN (''ONLINE'',''RESTORIN'')',
+		@Subject = @subject;
+
+	end

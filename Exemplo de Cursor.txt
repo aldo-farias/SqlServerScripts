@@ -1,0 +1,21 @@
+
+declare cur cursor local fast_forward for   
+
+--query com os registros  
+SELECT *  FROM CLIENTE WHERE SINCRONIZADO =0
+
+open cur  
+--inseri em variaveis
+fetch next from cur into @id,@R,@F,@V,@IndiceRfv,@Rfv,@segmento,@nivel, @RFVStatus
+
+while @@fetch_status = 0  
+begin  
+   
+ --faz o que é preciso
+  
+  --pega proximo registro
+ fetch next from cur into @id,@R,@F,@V,@IndiceRfv,@Rfv,@segmento,@nivel,@RFVStatus  
+end 
+--fecha o cursor
+close cur  
+deallocate cur

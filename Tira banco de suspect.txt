@@ -1,0 +1,11 @@
+EXEC sp_resetstatus 'Grippon_Smateus';
+
+ALTER DATABASE Grippon_Smateus SET EMERGENCY
+
+DBCC checkdb('Grippon_Smateus')
+
+ALTER DATABASE Grippon_Smateus SET SINGLE_USER WITH ROLLBACK IMMEDIATE
+
+DBCC CheckDB ('Grippon_Smateus', REPAIR_ALLOW_DATA_LOSS)
+
+ALTER DATABASE Grippon_Smateus SET MULTI_USER

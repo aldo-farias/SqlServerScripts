@@ -1,0 +1,49 @@
+declare @max int, @curr int
+select @max= max(convert (int,numero)) from lojanotafiscal
+where filial ='000006'
+and modelo ='cfe'
+and serie ='000404884'
+and convert (date,emissao )between '20180101' and '20180313'
+print @max
+set @curr = 10000
+while @curr < @max
+begin
+set @curr = @curr + 1
+if(not EXISTS(select convert (int,numero) from lojanotafiscal where numero = @curr 
+and filial ='000006'
+and modelo ='cfe'
+and serie ='000404884'
+and convert (date, emissao )between '20180101' and '20180313'
+))
+
+begin
+	print 'Código ' + cast(@curr as char(10)) + ' não encontrado.'
+end
+end
+
+----------------
+--verifica quebra em loja_cf_sat:
+
+declare @max int, @curr int
+select 
+@max= max(convert (int,cf_numero)) 
+from loja_cf_sat
+where 
+ convert(date,emissao) between '20190222' and '20190223'
+ 
+--print @max
+set @curr = 3442
+while @curr < @max
+begin
+set @curr = @curr + 1
+if(not EXISTS(select convert (int,cf_numero) from loja_cf_sat where cf_numero = @curr 
+
+and convert(date,emissao) between '20190222' and '23190228'
+))
+
+begin
+	print 'Código ' + cast(@curr as char(10)) + ' não encontrado.'
+end
+end
+
+select * from 

@@ -1,0 +1,25 @@
+;WITH FKsNI (ObjectId, FKId) As (
+SELECT DISTINCT
+    parent_object_id, constraint_object_id
+FROM sys.foreign_key_columns As FC
+WHERE NOT EXISTS (
+    SELECT * FROM sys.index_columns As IC
+    WHERE
+        FC.parent_object_id = IC.object_id AND
+        FC.constraint_column_id = IC.index_column_id AND
+        FC.parent_column_id = IC.column_id))
+
+SELECT
+    OBJECT_NAME(FKsNI.ObjectId) As Objeto,
+    OBJECT_NAME(FKsNI.FKId) As FK,
+    C.Name As Coluna,
+    FC.constraint_column_id As Ordem
+FROM FKsNI
+INNER JOIN sys.foreign_key_columns As FC ON
+    FKsNI.FKId = FC.constraint_object_id AND
+    FKsNI.ObjectId = FC.parent_object_id
+INNER JOIN sys.columns As C ON
+    FC.parent_object_id = C.object_id AND
+    FC.parent_column_id = C.column_id
+ORDER BY Ordem
+

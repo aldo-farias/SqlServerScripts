@@ -1,0 +1,59 @@
+--Faz somente o insert dos registros na tabela temporaria.
+
+      declare @Id int,@SQLString nvarchar(4000)
+	       
+      select identity(int,1,1) Id, 'ALTER INDEX ' + B.Name + ' ON ' + C.Name +
+            case when Avg_Fragmentation_In_Percent < 20 then ' REORGANIZE' else ' REBUILD' end Comando
+      INTO #Indices_Fragmentados
+      from sys.dm_db_index_physical_stats(db_id(),null,null,null,null) A
+            join sys.indexes B on a.object_id = B.Object_id and A.index_id = B.index_id
+            join sys.sysobjects C on C.id = B.Object_id
+      where avg_fragmentation_in_percent > 5
+            and Page_Count > 1000
+
+
+select * FROM #Indices_Fragmentados
+
+----------------------------------------------------------------------------------------------------------------------
+
+--Cria Proc que faz o REBUILD ou REORGANIZE do indice 
+go
+create procedure REBUILD_REORGANIZE_INDEX
+
+AS
+
+declare @script varchar(max), @index varchar(128), @tabela varchar(128), @fragmentacao tinyint 
+
+declare cur cursor local fast_forward for 
+
+	select b.name,c.name, avg_fragmentation_in_percent
+			from sys.dm_db_index_physical_stats(db_id(),null,null,null,null) A
+            join sys.indexes B on a.object_id = B.Object_id and A.index_id = B.index_id
+            join sys.sysobjects C on C.id = B.Object_id
+			where avg_fragmentation_in_percent > 5 and Page_Count > 1000 and b.name is not null
+
+		open cur
+fetch next from cur into @index, @tabela, @fragmentacao
+while @@fetch_status = 0
+begin
+
+	if (@fragmentacao < 20)
+	
+			begin 		
+				set @script = 'ALTER INDEX ' +@index+ ' ON ' +@tabela+ ' REORGANIZE'
+				exec(@script)
+			end
+	else
+			begin
+				set @script = 'ALTER INDEX ' +@index+ ' ON ' +@tabela+ ' REBUILD'
+				exec(@script)
+			end
+
+	fetch next from cur into @index, @tabela, @fragmentacao
+
+end
+close cur
+deallocate cur
+
+
+REBUILD_REORGANIZE_INDEX
